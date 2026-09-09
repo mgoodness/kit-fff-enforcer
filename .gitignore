@@ -1,0 +1,9 @@
+# Build artifacts
+/kit-fff-enforcer
+
+# Go
+*.test
+*.out
+
+# OS
+.DS_Store
