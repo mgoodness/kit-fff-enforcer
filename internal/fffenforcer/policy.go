@@ -1,14 +1,20 @@
 // Package fffenforcer contains the pure decision logic behind the
 // enforce-fff kit extension: which tool calls get blocked, and why.
 //
-// This logic is duplicated (not imported) into enforce-fff.go, the actual
-// kit extension entry point. Kit's Yaegi loader evaluates that file's raw
-// source text in an interpreter that only exposes the Go standard library
-// and kit's own "kit/ext" API — it cannot import this compiled package, or
-// any other third-party or local Go package. Keeping the decision logic
-// here, under an ordinary `go test`, is what makes it testable at all; see
-// enforce-fff.go for the thin, yaegi-loadable wrapper that calls into the
-// same logic inline.
+// This logic is duplicated (not imported) into ../../enforce-fff.go, the
+// actual kit extension entry point. Kit's Yaegi loader evaluates that
+// file's raw source text in an interpreter that only exposes the Go
+// standard library and kit's own "kit/ext" API — it cannot import this
+// compiled package, or any other third-party or local Go package. Keeping
+// the decision logic here, under an ordinary `go test`, is what makes it
+// testable at all; see ../../enforce-fff.go for the thin, yaegi-loadable
+// wrapper that calls into the same logic inline.
+//
+// This package lives under internal/ specifically so kit's own
+// `kit install` extension scanner skips it: the scanner treats every
+// root-level *.go file as a candidate extension, and a file with no
+// Init(api ext.API) function would fail to load (silently, but on every
+// kit startup) if it were scanned.
 package fffenforcer
 
 import (

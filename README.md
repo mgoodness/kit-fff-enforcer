@@ -62,20 +62,27 @@ rather than getting stuck.
 
 ## Repository layout
 
-- **`enforce-fff.go`** — the actual kit extension. kit's
+- **`enforce-fff.go`** — the actual kit extension, at the repo root. kit's
   [Yaegi](https://github.com/traefik/yaegi)-based loader evaluates this
   file's raw source text in an interpreter that only exposes the Go
   standard library and kit's own `kit/ext` API, so it can't import
-  anything else in this module — the decision logic is inlined here.
-- **`policy.go`** — the same decision logic, factored out as an ordinary,
-  dependency-free Go package so it can be unit tested with `go test`.
-  Kept in sync with `enforce-fff.go` by hand; if you change one, change
-  the other.
-- **`policy_test.go`** — table-driven unit tests of `policy.go` (pure,
-  no git or kit binary required).
-- **`smoke_test.go`** — a black-box test that shells out to the real
-  `kit` binary (`kit extensions validate -e ./enforce-fff.go`) to confirm
-  the actual yaegi-loadable file parses and registers a handler. Skipped
+  anything else in this module — the decision logic is inlined here. It
+  must stay at the root: kit's `kit install` scanner only recognizes
+  root-level `*.go` files (or `main.go` under an `ext/`,
+  `*-ext/`/`*-extensions/` subdirectory) as extensions.
+- **`internal/fffenforcer/policy.go`** — the same decision logic, factored
+  out as an ordinary, dependency-free Go package so it can be unit tested
+  with `go test`. It lives under `internal/` specifically because kit's
+  extension scanner skips that directory — otherwise it would try (and
+  fail) to load `policy.go` as a second extension on every `kit` startup,
+  since it has no `Init(api ext.API)` function. Kept in sync with
+  `enforce-fff.go` by hand; if you change one, change the other.
+- **`internal/fffenforcer/policy_test.go`** — table-driven unit tests of
+  `policy.go` (pure, no git or kit binary required).
+- **`smoke_test.go`** — a black-box test, at the repo root next to
+  `enforce-fff.go`, that shells out to the real `kit` binary (`kit
+  extensions validate -e ./enforce-fff.go`) to confirm the actual
+  yaegi-loadable file parses and registers a handler. Skipped
   automatically if `kit` isn't on `PATH`.
 
 ## Testing

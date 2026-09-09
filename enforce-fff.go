@@ -13,9 +13,15 @@ package main
 // interpreter that only exposes the Go standard library and kit's own
 // "kit/ext" API — it cannot import github.com/mgoodness/kit-fff-enforcer
 // or any other local/third-party Go package, so the decision logic below
-// is inlined rather than shared. See policy.go / policy_test.go in this
-// repo for the same logic under ordinary `go test` — keep the two in
-// sync when changing either one.
+// is inlined rather than shared. See internal/fffenforcer/policy.go and
+// policy_test.go in this repo for the same logic under ordinary
+// `go test` — keep the two in sync when changing either one.
+//
+// This file must stay at the repository root: kit's `kit install`
+// scanner only recognizes root-level *.go files (or main.go under an
+// ext/*-ext/*-extensions/ subdirectory) as extensions, and skips
+// internal/, cmd/, pkg/, test*/ entirely — which is also why the pure
+// logic package lives under internal/ rather than at the root.
 //
 // Install: kit install github.com/mgoodness/kit-fff-enforcer
 // Or drop this file directly into ~/.config/kit/extensions/.
