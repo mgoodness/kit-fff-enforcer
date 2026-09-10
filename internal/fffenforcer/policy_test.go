@@ -104,6 +104,78 @@ func TestDecideShellCommand(t *testing.T) {
 			inGitWorkTree: false,
 			wantBlock:     false,
 		},
+		{
+			name:          "grep piped from curl not blocked",
+			command:       "curl -s https://example.com | grep foo",
+			inGitWorkTree: true,
+			wantBlock:     false,
+		},
+		{
+			name:          "grep piped from wget not blocked",
+			command:       "wget -qO- https://example.com | grep foo",
+			inGitWorkTree: true,
+			wantBlock:     false,
+		},
+		{
+			name:          "find piped from curl still blocked",
+			command:       "curl -s https://example.com/list | find . -type f",
+			inGitWorkTree: true,
+			wantBlock:     true,
+		},
+		{
+			name:          "grep piped from curl after other commands not blocked",
+			command:       "echo start; curl -s https://example.com | grep foo",
+			inGitWorkTree: true,
+			wantBlock:     false,
+		},
+		{
+			name:          "grep piped from cat still blocked",
+			command:       "cat notes.txt | grep foo",
+			inGitWorkTree: true,
+			wantBlock:     true,
+		},
+		{
+			name:          "grep piped from curl outside git repo not blocked",
+			command:       "curl -s https://example.com | grep foo",
+			inGitWorkTree: false,
+			wantBlock:     false,
+		},
+		{
+			name:          "grep piped from curl through jq (multi-stage) not blocked",
+			command:       "curl -s https://example.com | jq .name | grep foo",
+			inGitWorkTree: true,
+			wantBlock:     false,
+		},
+		{
+			name:          "grep piped from cat through jq (multi-stage) still blocked",
+			command:       "cat notes.json | jq .name | grep foo",
+			inGitWorkTree: true,
+			wantBlock:     true,
+		},
+		{
+			name:          "grep fed by process substitution of curl not blocked",
+			command:       "grep foo <(curl -s https://example.com)",
+			inGitWorkTree: true,
+			wantBlock:     false,
+		},
+		{
+			name:          "grep fed by command substitution of curl not blocked",
+			command:       "grep foo \"$(curl -s https://example.com)\"",
+			inGitWorkTree: true,
+			wantBlock:     false,
+		},
+		{
+			name:          "grep fed by process substitution of cat still blocked",
+			command:       "grep foo <(cat notes.txt)",
+			inGitWorkTree: true,
+			wantBlock:     true,
+		},
+		{
+			name:          "find fed by process substitution of curl still blocked",
+			command:       "find <(curl -s https://example.com) -type f",
+			inGitWorkTree: true,
+			wantBlock:     true,
+		},
 	}
 
 	for _, tc := range cases {
