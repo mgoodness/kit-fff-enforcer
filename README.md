@@ -67,6 +67,32 @@ Blocked calls return a `Reason` that tells the model exactly which fff
 tool to use instead — models reliably self-correct on the next tool call
 rather than getting stuck.
 
+### Exception: `grep` fed by a network fetch
+
+`fff` only has repo files indexed — it has nothing indexed for data
+pulled from the network, so blocking `grep` in that case leaves the
+model with no working alternative. Shell `grep` is **not** blocked when
+it's filtering the output of `curl`, `wget`, or an `http(s)` client:
+
+| Example | Blocked? |
+|---|---|
+| `cat file \| grep foo` | blocked (real repo file) |
+| `curl ... \| grep foo` | **allowed** (network response, not indexed) |
+| `curl ... \| jq ... \| grep foo` | **allowed** (chain still originates at curl) |
+| `grep foo <(curl ...)` / `grep foo "$(curl ...)"` | **allowed** (process/command substitution of a fetch) |
+| `grep foo <(cat file)` | blocked (still a real repo file underneath) |
+
+This exception is **`grep`-only**. `find` never consumes piped or
+substituted stdin — it walks whatever path it's given as an argument,
+which is still a real, fff-indexed filesystem search — so
+`curl ... \| find . -type f` and `find <(curl ...) -type f` both stay
+blocked.
+
+The built-in `grep`/`find` core tools (the first two table rows above)
+have no such exception either: they're blocked outright inside a git
+work tree, since kit's core tools always operate on repo files, never
+on piped or substituted process output.
+
 ## Repository layout
 
 - **`enforce-fff.go`** — the actual kit extension, at the repo root. kit's
@@ -91,6 +117,15 @@ rather than getting stuck.
   extensions validate -e ./enforce-fff.go`) to confirm the actual
   yaegi-loadable file parses and registers a handler. Skipped
   automatically if `kit` isn't on `PATH`.
+- **`.github/workflows/test.yml`** — builds, vets, and tests on every push
+  to `main` and every PR. `main` requires this check to pass before
+  merging (see [CI](#ci) below).
+- **`.github/workflows/release-please.yml`** and **`release-please-config.json`**
+  / **`.release-please-manifest.json`** — the release automation described
+  under [Versioning](#versioning).
+- **`.github/workflows/dependabot-auto-merge.yml`** and **`.github/dependabot.yml`**
+  — the dependency-update automation described under
+  [Versioning](#versioning).
 
 ## Testing
 
@@ -101,6 +136,15 @@ go test ./...
 `TestExtensionLoads` (in `smoke_test.go`) additionally validates the real
 extension file if `kit` is installed locally; everything else is a pure
 unit test with no external dependencies.
+
+## CI
+
+`.github/workflows/test.yml` runs `go build`, `go vet`, and `go test` on
+every push to `main` and every pull request. `main` has branch protection
+requiring that `test` check to pass before a PR can merge (non-strict:
+merging doesn't require the branch to already be up to date with `main`
+first). Direct pushes to `main` are still allowed; only merges are
+gated.
 
 ## Versioning
 
@@ -117,11 +161,23 @@ Pin `kit install` to a released tag (see [Install](#install)) rather
 than tracking `main`, so a change to the blocking rules doesn't show up
 unannounced.
 
+release-please authenticates as a dedicated GitHub App (installed only
+on this repo), rather than the default `GITHUB_TOKEN`, minted via
+[`actions/create-github-app-token`](https://github.com/actions/create-github-app-token).
+This is required, not cosmetic: GitHub suppresses new workflow runs
+triggered by the default token (an anti-recursion rule), so `test.yml`
+would never run on the release PR itself, and that PR could never
+satisfy the required `test` check described under [CI](#ci). The App's
+Client ID and private key are stored as the `RELEASE_PLEASE_APP_CLIENT_ID`
+repo variable and `RELEASE_PLEASE_APP_PRIVATE_KEY` repo secret.
+
 Dependency and GitHub Actions updates are automated via
 [Dependabot](.github/dependabot.yml) (weekly, for both the Go module and
-the workflows in `.github/workflows/`). Dependabot PRs that are
-minor/patch bumps auto-merge once CI passes; major bumps are left open
-for manual review.
+the workflows in `.github/workflows/`).
+[`dependabot-auto-merge.yml`](.github/workflows/dependabot-auto-merge.yml)
+enables GitHub's native auto-merge on Dependabot PRs that are
+minor/patch bumps, once the required `test` check passes; major bumps
+are left open for manual review.
 
 ## License
 
