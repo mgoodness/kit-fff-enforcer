@@ -119,3 +119,8 @@ unannounced.
 
 Dependency and GitHub Actions updates are automated via
 [Dependabot](.github/dependabot.yml) (weekly, for both the Go module and
+the workflows in `.github/workflows/`).
+
+## License
+
+[GPL-3.0](LICENSE).
