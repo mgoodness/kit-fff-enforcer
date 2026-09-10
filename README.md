@@ -115,3 +115,7 @@ in a minor bump rather than a major one.
 
 Pin `kit install` to a released tag (see [Install](#install)) rather
 than tracking `main`, so a change to the blocking rules doesn't show up
+unannounced.
+
+Dependency and GitHub Actions updates are automated via
+[Dependabot](.github/dependabot.yml) (weekly, for both the Go module and
