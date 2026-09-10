@@ -38,6 +38,13 @@ Then install this extension:
 kit install github.com/mgoodness/kit-fff-enforcer
 ```
 
+Or, pinned to a specific released version (recommended, since the
+blocking rules below have changed between releases and may again):
+
+```bash
+kit install github.com/mgoodness/kit-fff-enforcer@v0.1.0
+```
+
 Or, for a project-local install:
 
 ```bash
@@ -94,3 +101,17 @@ go test ./...
 `TestExtensionLoads` (in `smoke_test.go`) additionally validates the real
 extension file if `kit` is installed locally; everything else is a pure
 unit test with no external dependencies.
+
+## Versioning
+
+Releases are tagged `vX.Y.Z` and managed by
+[release-please](https://github.com/googleapis/release-please), which
+opens a release PR from [Conventional
+Commits](https://www.conventionalcommits.org/) on `main` and tags a new
+version (with a generated `CHANGELOG.md`) once that PR is merged. This
+repo is pre-1.0: the blocking rules (what counts as a network fetch,
+which shell shapes are exempted, etc.) are still settling and may change
+in a minor bump rather than a major one.
+
+Pin `kit install` to a released tag (see [Install](#install)) rather
+than tracking `main`, so a change to the blocking rules doesn't show up
