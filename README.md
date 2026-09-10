@@ -139,12 +139,17 @@ unit test with no external dependencies.
 
 ## CI
 
-`.github/workflows/ci.yml` runs `go build`, `go vet`, and `go test` on
-every push to `main` and every pull request, as its `test` job. `main`
-has branch protection requiring that `test` check to pass before a PR
-can merge (non-strict: merging doesn't require the branch to already be
-up to date with `main` first). Direct pushes to `main` are still
-allowed; only merges are gated.
+`.github/workflows/ci.yml` runs `go build`, `go vet`, `go test`, a
+`go mod tidy` drift check, and
+[`govulncheck`](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) on
+every push to `main` and every pull request, as its `test` job — the
+last two exist mainly to catch a bad `go.mod` edit or a
+known-vulnerable dependency slipping in via an auto-merged Dependabot
+bump (see [Versioning](#versioning)) before anyone notices. `main` has
+branch protection requiring that `test` check to pass before a PR can
+merge (non-strict: merging doesn't require the branch to already be up
+to date with `main` first). Direct pushes to `main` are still allowed;
+only merges are gated.
 
 ## Versioning
 
