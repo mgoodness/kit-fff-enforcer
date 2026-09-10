@@ -117,9 +117,9 @@ on piped or substituted process output.
   extensions validate -e ./enforce-fff.go`) to confirm the actual
   yaegi-loadable file parses and registers a handler. Skipped
   automatically if `kit` isn't on `PATH`.
-- **`.github/workflows/test.yml`** — builds, vets, and tests on every push
-  to `main` and every PR. `main` requires this check to pass before
-  merging (see [CI](#ci) below).
+- **`.github/workflows/ci.yml`** — builds, vets, and tests on every push
+  to `main` and every PR (job id `test`). `main` requires that job's
+  check to pass before merging (see [CI](#ci) below).
 - **`.github/workflows/release-please.yml`** and **`release-please-config.json`**
   / **`.release-please-manifest.json`** — the release automation described
   under [Versioning](#versioning).
@@ -139,12 +139,12 @@ unit test with no external dependencies.
 
 ## CI
 
-`.github/workflows/test.yml` runs `go build`, `go vet`, and `go test` on
-every push to `main` and every pull request. `main` has branch protection
-requiring that `test` check to pass before a PR can merge (non-strict:
-merging doesn't require the branch to already be up to date with `main`
-first). Direct pushes to `main` are still allowed; only merges are
-gated.
+`.github/workflows/ci.yml` runs `go build`, `go vet`, and `go test` on
+every push to `main` and every pull request, as its `test` job. `main`
+has branch protection requiring that `test` check to pass before a PR
+can merge (non-strict: merging doesn't require the branch to already be
+up to date with `main` first). Direct pushes to `main` are still
+allowed; only merges are gated.
 
 ## Versioning
 
@@ -165,9 +165,10 @@ release-please authenticates as a dedicated GitHub App (installed only
 on this repo), rather than the default `GITHUB_TOKEN`, minted via
 [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token).
 This is required, not cosmetic: GitHub suppresses new workflow runs
-triggered by the default token (an anti-recursion rule), so `test.yml`
-would never run on the release PR itself, and that PR could never
-satisfy the required `test` check described under [CI](#ci). The App's
+triggered by the default token (an anti-recursion rule), so the `test`
+job in `ci.yml` would never run on the release PR itself, and that PR
+could never satisfy the required `test` check described under
+[CI](#ci). The App's
 Client ID and private key are stored as the `RELEASE_PLEASE_APP_CLIENT_ID`
 repo variable and `RELEASE_PLEASE_APP_PRIVATE_KEY` repo secret.
 
