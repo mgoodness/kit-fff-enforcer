@@ -119,7 +119,9 @@ unannounced.
 
 Dependency and GitHub Actions updates are automated via
 [Dependabot](.github/dependabot.yml) (weekly, for both the Go module and
-the workflows in `.github/workflows/`).
+the workflows in `.github/workflows/`). Dependabot PRs that are
+minor/patch bumps auto-merge once CI passes; major bumps are left open
+for manual review.
 
 ## License
 
