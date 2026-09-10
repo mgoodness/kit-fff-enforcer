@@ -3,7 +3,8 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "kit-fff-enforcer"
+      "package-name": "kit-fff-enforcer",
+      "initial-version": "0.1.0"
     }
   }
 }
